@@ -27,7 +27,8 @@ public class SqlChangeLogParser implements ChangeLogParser {
     
     @Override
     public DatabaseChangeLog parse(String physicalChangeLogLocation, ChangeLogParameters changeLogParameters, ResourceAccessor resourceAccessor) throws ChangeLogParseException {
-
+        System.out.println("DREW: inside DatabaseChangeLog parse");
+        System.out.println(String.format("DREW: - physicalChangeLogLocation: '%s'", physicalChangeLogLocation));
         DatabaseChangeLog changeLog = new DatabaseChangeLog();
         changeLog.setPhysicalFilePath(physicalChangeLogLocation);
 

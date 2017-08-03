@@ -126,6 +126,12 @@ public class SpringLiquibase implements InitializingBean, BeanNameAware, Resourc
 
         @Override
         public Set<String> list(String relativeTo, String path, boolean includeFiles, boolean includeDirectories, boolean recursive) throws IOException {
+          System.out.println("DREW: inside the resourceAccessor.list()");
+          System.out.println(String.format("DREW: relativeTo: '%s'", relativeTo));
+          System.out.println(String.format("DREW: path: '%s'", path));
+          System.out.println(String.format("DREW: includeFiles: '%s'", includeFiles));
+          System.out.println(String.format("DREW: includeDirectories: '%s'", includeDirectories));
+          System.out.println(String.format("DREW: recursive: '%s'", recursive));
 			if (path == null) {
 				return null;
 			}
@@ -137,10 +143,26 @@ public class SpringLiquibase implements InitializingBean, BeanNameAware, Resourc
 			Resource[] resources = ResourcePatternUtils.getResourcePatternResolver(getResourceLoader()).getResources(adjustClasspath(tempFile));
 
 			for (Resource res : resources) {
+        System.out.println(String.format("DREW: res.getURL().toExternalForm(): '%s'", res.getURL().toExternalForm()));
+        // NOTE: DREW: the following three lines are a completed hack to verify if
+        // the problem is the weird extra ! character after BOOT-INFO/classes!.
+        // The original code is commented out right below this.
+        //
+        // Sadly the following didn't fix it, but I still think it is wrong so I
+        // am going to leave the potential fix here commented out until I get a
+        // deeper understanding of why super.list() is not returning what I want
+        // String drew_foo = res.getURL().toExternalForm().replaceAll("/classes!", "/classes");
+        // System.out.println(String.format("DREW: fixed res.getURL().toExternalForm(): '%s'", drew_foo));
+				// Set<String> list = super.list(null, drew_foo, includeFiles, includeDirectories, recursive);
 				Set<String> list = super.list(null, res.getURL().toExternalForm(), includeFiles, includeDirectories, recursive);
 				if (list != null) {
 					returnSet.addAll(list);
 				}
+
+        System.out.println("DREW: updated returnSet");
+        for (String str : returnSet) {
+          System.out.println(String.format("DREW: returnSet val: '%s'", str));
+        }
 			}
 
             return returnSet;

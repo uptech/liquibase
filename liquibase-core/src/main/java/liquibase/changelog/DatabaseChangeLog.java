@@ -272,6 +272,7 @@ public class DatabaseChangeLog implements Comparable<DatabaseChangeLog>, Conditi
     }
 
     public void load(ParsedNode parsedNode, ResourceAccessor resourceAccessor) throws ParsedNodeException, SetupException {
+        System.out.println("DREW: DatabaseChangeLog.load just called");
         setLogicalFilePath(parsedNode.getChildValue(null, "logicalFilePath", String.class));
         setContexts(new ContextExpression(parsedNode.getChildValue(null, "context", String.class)));
         String objectQuotingStrategy = parsedNode.getChildValue(null, "objectQuotingStrategy", String.class);
@@ -322,8 +323,11 @@ public class DatabaseChangeLog implements Comparable<DatabaseChangeLog>, Conditi
                 throw new SetupException(e);
             }
         } else if (nodeName.equals("includeAll")) {
+            System.out.println("DREW: found an includeAll node");
             String path = node.getChildValue(null, "path", String.class);
+            System.out.println(String.format("DREW: read path as %s", path));
             String resourceFilterDef = node.getChildValue(null, "filter", String.class);
+            System.out.println(String.format("DREW: read filter as %s", resourceFilterDef));
             if (resourceFilterDef == null) {
                 resourceFilterDef = node.getChildValue(null, "resourceFilter", String.class);
             }
@@ -402,6 +406,12 @@ public class DatabaseChangeLog implements Comparable<DatabaseChangeLog>, Conditi
     public void includeAll(String pathName, boolean isRelativeToChangelogFile, IncludeAllFilter resourceFilter,
                            boolean errorIfMissingOrEmpty,
                            Comparator<String> resourceComparator, ResourceAccessor resourceAccessor, ContextExpression includeContexts) throws SetupException {
+        System.out.println("DREW: inside the includeAll method");
+        System.out.println(String.format("DREW: pathName: %s", pathName));
+        System.out.println(String.format("DREW: isRelativeToChangelogFile: %s", isRelativeToChangelogFile));
+        System.out.println(String.format("DREW: errorIfMissingOrEmpty: %s", isRelativeToChangelogFile));
+        System.out.println(String.format("DREW: resourceComparator: %s", resourceComparator));
+        // System.out.println(String.format("DREW: resourceAccessor: %s", resourceAccessor.toString()));
         try {
             if (pathName == null) {
                 throw new SetupException("No path attribute for includeAll");
@@ -414,6 +424,7 @@ public class DatabaseChangeLog implements Comparable<DatabaseChangeLog>, Conditi
             Logger log = LogFactory.getInstance().getLog();
             log.debug("includeAll for " + pathName);
             log.debug("Using file opener for includeAll: " + resourceAccessor.toString());
+            System.out.println(String.format("DREW: pathName after alteration: %s", pathName));
 
             String relativeTo = null;
             if (isRelativeToChangelogFile) {
@@ -422,17 +433,23 @@ public class DatabaseChangeLog implements Comparable<DatabaseChangeLog>, Conditi
 
             Set<String> unsortedResources = null;
             try {
+                System.out.println(String.format("DREW: relativeTo: '%s'", relativeTo));
                 unsortedResources = resourceAccessor.list(relativeTo, pathName, true, false, true);
+                System.out.println("DREW: resourceAccessor.list returned unsortedResources");
             } catch (FileNotFoundException e) {
+                System.out.println("DREW: file not found exception");
                 if (errorIfMissingOrEmpty){
                     throw e;
                 }
             }
             SortedSet<String> resources = new TreeSet<String>(resourceComparator);
             if (unsortedResources != null) {
+                System.out.println("DREW: unsortedResources is NOT null");
                 for (String resourcePath : unsortedResources) {
+                    System.out.println(String.format("DREW: resourcePath: '%s'", resourcePath));
                     if (resourceFilter == null || resourceFilter.include(resourcePath)) {
                         resources.add(resourcePath);
+                        System.out.println(String.format("DREW: added resourcePath: '%s'", resourcePath));
                     }
                 }
             }
@@ -442,6 +459,7 @@ public class DatabaseChangeLog implements Comparable<DatabaseChangeLog>, Conditi
             }
 
             for (String path : resources) {
+                System.out.println(String.format("DREW: about to include() path: '%s'", path));
                 include(path, false, resourceAccessor, includeContexts);
             }
         } catch (Exception e) {
@@ -450,12 +468,16 @@ public class DatabaseChangeLog implements Comparable<DatabaseChangeLog>, Conditi
     }
 
     public boolean include(String fileName, boolean isRelativePath, ResourceAccessor resourceAccessor, ContextExpression includeContexts) throws LiquibaseException {
+        System.out.println("DREW: inside include()");
+        System.out.println(String.format("DREW: - fileName: '%s'", fileName));
+        System.out.println(String.format("DREW: - isRelativePath: '%s'", isRelativePath));
 
         if (fileName.equalsIgnoreCase(".svn") || fileName.equalsIgnoreCase("cvs")) {
             return false;
         }
 
         String relativeBaseFileName = this.getPhysicalFilePath();
+        System.out.println(String.format("DREW: - relativeBaseFileName: '%s'", relativeBaseFileName));
         if (isRelativePath) {
             // workaround for FilenameUtils.normalize() returning null for relative paths like ../conf/liquibase.xml
             String tempFile = FilenameUtils.concat(FilenameUtils.getFullPath(relativeBaseFileName), fileName);

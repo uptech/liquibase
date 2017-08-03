@@ -58,18 +58,24 @@ public class ClassLoaderResourceAccessor extends AbstractResourceAccessor {
 
     @Override
     public Set<String> list(String relativeTo, String path, boolean includeFiles, boolean includeDirectories, boolean recursive) throws IOException {
+        System.out.println("DREW: inside ClassLoaderResourceAccessor.list()");
+        System.out.println(String.format("DREW: - path: '%s'", path));
         path = convertToPath(relativeTo, path);
+        System.out.println(String.format("DREW: - converted path: '%s'", path));
 
         Enumeration<URL> fileUrls = classLoader.getResources(path);
 
         Set<String> returnSet = new HashSet<String>();
 
         if (!fileUrls.hasMoreElements() && (path.startsWith("jar:") || path.startsWith("file:"))) {
+            System.out.println("DREW: doing the fileUrls vector thing");
             fileUrls = new Vector<URL>(Arrays.asList(new URL(path))).elements();
         }
 
         while (fileUrls.hasMoreElements()) {
             URL fileUrl = fileUrls.nextElement();
+
+            System.out.println(String.format("DREW: fileUrl: '%s'", fileUrl.toExternalForm()));
 
             if (fileUrl.toExternalForm().startsWith("jar:file:")
                     || fileUrl.toExternalForm().startsWith("wsjar:file:")
@@ -83,6 +89,7 @@ public class ClassLoaderResourceAccessor extends AbstractResourceAccessor {
                     zipFilePath = zipFilePath.replaceFirst("file:", "");
                 }
                 zipFilePath = URLDecoder.decode(zipFilePath, LiquibaseConfiguration.getInstance().getConfiguration(GlobalConfiguration.class).getOutputEncoding());
+                System.out.println(String.format("DREW: - zipFilePath: '%s'", zipFilePath));
 
                 if (path.startsWith("classpath:")) {
                     path = path.replaceFirst("classpath:", "");
@@ -104,7 +111,11 @@ public class ClassLoaderResourceAccessor extends AbstractResourceAccessor {
                     Enumeration<JarEntry> entries = zipfile.entries();
                     while (entries.hasMoreElements()) {
                         JarEntry entry = entries.nextElement();
-
+                        System.out.println(String.format("DREW: - entry: '%s'", entry.getName()));
+                        
+                        // NOTE: DREW: giant hack to see if in our scenario it
+                        // properly adds things when run without this
+                        // conditional
                         if (entry.getName().startsWith(path)) {
 
                             if (!recursive) {
@@ -142,9 +153,13 @@ public class ClassLoaderResourceAccessor extends AbstractResourceAccessor {
 
             Enumeration<URL> resources = classLoader.getResources(path);
 
+            System.out.println("DREW: - get resources from path again");
+
             while (resources.hasMoreElements()) {
                 String url = resources.nextElement().toExternalForm();
+                System.out.println(String.format("DREW: - url before replace '%s'", url));
                 url = url.replaceFirst("^\\Q" + path + "\\E", "");
+                System.out.println(String.format("DREW: - adding url '%s'", url));
                 returnSet.add(url);
             }
         }

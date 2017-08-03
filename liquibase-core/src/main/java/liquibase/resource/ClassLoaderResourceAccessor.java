@@ -83,9 +83,9 @@ public class ClassLoaderResourceAccessor extends AbstractResourceAccessor {
 
                 String drew_foo = fileUrl.getFile().replaceAll("/classes!", "/classes");
 
-                // NOTE: DREW: giant hack, the real code is commented out below
-                String[] zipAndFile = drew_foo.split("!");
-                path = zipAndFile[1];
+                // NOTE: DREW: MAGIC: giant hack, the real code is commented out below
+                String[] zipAndFile = drew_foo.split("!"); // DREW
+                path = zipAndFile[1].substring(1); // DREW
                 // String[] zipAndFile = fileUrl.getFile().split("!");
                 String zipFilePath = zipAndFile[0];
                 if (zipFilePath.matches("file:\\/[A-Za-z]:\\/.*")) {
@@ -120,6 +120,7 @@ public class ClassLoaderResourceAccessor extends AbstractResourceAccessor {
                         
                         // NOTE: DREW: giant hack to see if in our scenario it
                         // properly adds things when run without this
+                          System.out.println(String.format("DREW: path: '%s'", path));
                         // conditional
                         if (entry.getName().startsWith(path)) {
                           System.out.println(String.format("DREW: entity started with path: '%s'", path));
